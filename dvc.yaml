@@ -6,3 +6,10 @@ stages:
     - src/prepare.py
     outs:
     - data/processed/credit_default_processed.csv
+  train:
+    cmd: python src/train.py
+    deps:
+    - data/processed/credit_default_processed.csv
+    - src/train.py
+    outs:
+    - models/credit_default_model.joblib

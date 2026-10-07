@@ -16,3 +16,19 @@ stages:
       hash: md5
       md5: ff1eb42d1b6a3d99a2d63959cd58a797
       size: 5193752
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/credit_default_processed.csv
+      hash: md5
+      md5: ff1eb42d1b6a3d99a2d63959cd58a797
+      size: 5193752
+    - path: src/train.py
+      hash: md5
+      md5: 286f9154cac172afa031e03b4f573926
+      size: 10421
+    outs:
+    - path: models/credit_default_model.joblib
+      hash: md5
+      md5: 67980eea2d444b6c3d50ee76d38bbb62
+      size: 6602
