@@ -35,6 +35,8 @@ models/*
 # MLflow
 mlruns/
 mlartifacts/
+mlflow.db
+
 
 # Logs and temporary files
 *.log
