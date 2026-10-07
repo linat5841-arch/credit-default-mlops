@@ -20,16 +20,12 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-
 # Определяю корневую директорию проекта
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Задаю путь к подготовленным данным
 PROCESSED_DATA_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "processed"
-    / "credit_default_processed.csv"
+    PROJECT_ROOT / "data" / "processed" / "credit_default_processed.csv"
 )
 
 # Задаю директорию для сохранения графиков
@@ -69,9 +65,7 @@ def load_processed_data(
     """Загружаю подготовленный датасет."""
 
     if not path.exists():
-        raise FileNotFoundError(
-            f"Файл с подготовленными данными не найден: {path}"
-        )
+        raise FileNotFoundError(f"Файл с подготовленными данными не найден: {path}")
 
     df = pd.read_csv(path)
 
@@ -116,9 +110,7 @@ def build_pipeline(
 
     # Определяю числовые признаки
     numerical_features = [
-        column
-        for column in X_train.columns
-        if column not in CATEGORICAL_FEATURES
+        column for column in X_train.columns if column not in CATEGORICAL_FEATURES
     ]
 
     # Создаю пайплайн обработки числовых признаков
@@ -225,14 +217,8 @@ def tune_model(
     )
 
     print("\nПодбор гиперпараметров завершён.")
-    print(
-        f"Лучший ROC-AUC на CV: "
-        f"{grid_search.best_score_:.4f}"
-    )
-    print(
-        f"Лучшие параметры: "
-        f"{grid_search.best_params_}"
-    )
+    print(f"Лучший ROC-AUC на CV: " f"{grid_search.best_score_:.4f}")
+    print(f"Лучшие параметры: " f"{grid_search.best_params_}")
 
     return grid_search
 
@@ -379,9 +365,7 @@ def log_mlflow_run(
     """Логирую параметры, метрики и артефакты в MLflow."""
 
     # Начинаю MLflow run
-    with mlflow.start_run(
-        run_name="logistic_regression_tuned"
-    ):
+    with mlflow.start_run(run_name="logistic_regression_tuned"):
         # Логирую параметры эксперимента
         mlflow.log_param(
             "model_type",
@@ -393,11 +377,7 @@ def log_mlflow_run(
         )
         mlflow.log_param(
             "class_weight",
-            str(
-                grid_search.best_params_[
-                    "model__class_weight"
-                ]
-            ),
+            str(grid_search.best_params_["model__class_weight"]),
         )
         mlflow.log_param(
             "cv_folds",
@@ -430,17 +410,14 @@ def log_mlflow_run(
         # Создаю пример входных данных для сигнатуры
         input_example = X_train.head(5)
 
-        
-      # Логирую весь sklearn Pipeline в MLflow
+        # Логирую весь sklearn Pipeline в MLflow
         mlflow.sklearn.log_model(
             sk_model=model,
             name="model",
             input_example=input_example,
             serialization_format="cloudpickle",
         )
-        
-        
-        
+
         # Получаю идентификатор текущего run
         run_id = mlflow.active_run().info.run_id
 

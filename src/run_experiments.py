@@ -14,7 +14,6 @@ from train import (
     split_data,
 )
 
-
 # Задаю путь к локальной базе MLflow
 MLFLOW_DB_PATH = PROJECT_ROOT / "mlflow.db"
 
@@ -162,17 +161,9 @@ def run_experiment(
         # Получаю идентификатор текущего run
         run_id = mlflow.active_run().info.run_id
 
-        print(
-            f"\nЭксперимент {config['run_name']} "
-            f"успешно сохранён в MLflow."
-        )
-        print(
-            f"Средний CV ROC-AUC: "
-            f"{cv_scores.mean():.4f}"
-        )
-        print(
-            f"MLflow Run ID: {run_id}"
-        )
+        print(f"\nЭксперимент {config['run_name']} " f"успешно сохранён в MLflow.")
+        print(f"Средний CV ROC-AUC: " f"{cv_scores.mean():.4f}")
+        print(f"MLflow Run ID: {run_id}")
 
 
 if __name__ == "__main__":
@@ -191,10 +182,7 @@ if __name__ == "__main__":
     # Последовательно запускаю четыре эксперимента
     for experiment_config in EXPERIMENTS:
         print("\n" + "=" * 60)
-        print(
-            f"Запускаю эксперимент: "
-            f"{experiment_config['run_name']}"
-        )
+        print(f"Запускаю эксперимент: " f"{experiment_config['run_name']}")
         print("=" * 60)
 
         run_experiment(

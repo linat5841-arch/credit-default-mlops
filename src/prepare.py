@@ -2,13 +2,14 @@ from pathlib import Path
 
 import pandas as pd
 
-
 # Определяю корневую директорию проекта
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Задаю пути к исходным и обработанным данным
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "UCI_Credit_Card.csv"
-PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "credit_default_processed.csv"
+PROCESSED_DATA_PATH = (
+    PROJECT_ROOT / "data" / "processed" / "credit_default_processed.csv"
+)
 
 # Задаю имя целевой переменной
 TARGET_COLUMN = "default.payment.next.month"
@@ -17,6 +18,8 @@ TARGET_COLUMN = "default.payment.next.month"
 PAY_STATUS_COLUMNS = ["PAY_0", "PAY_2", "PAY_3", "PAY_4", "PAY_5", "PAY_6"]
 BILL_COLUMNS = [f"BILL_AMT{i}" for i in range(1, 7)]
 PAYMENT_COLUMNS = [f"PAY_AMT{i}" for i in range(1, 7)]
+
+
 def load_data(path: Path = RAW_DATA_PATH) -> pd.DataFrame:
     """Загружаю исходный датасет из CSV-файла."""
     if not path.exists():
@@ -28,6 +31,7 @@ def load_data(path: Path = RAW_DATA_PATH) -> pd.DataFrame:
 
     return df
 
+
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """Выполняю первичную очистку исходных данных."""
     df = df.copy()
@@ -36,21 +40,26 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=["ID"])
 
     # Объединяю неопределённые и редкие категории образования в категорию Other = 4
-    df["EDUCATION"] = df["EDUCATION"].replace({
-        0: 4,
-        5: 4,
-        6: 4,
-    })
+    df["EDUCATION"] = df["EDUCATION"].replace(
+        {
+            0: 4,
+            5: 4,
+            6: 4,
+        }
+    )
 
     # Объединяю неопределённую категорию семейного положения с Other = 3
-    df["MARRIAGE"] = df["MARRIAGE"].replace({
-        0: 3,
-    })
+    df["MARRIAGE"] = df["MARRIAGE"].replace(
+        {
+            0: 3,
+        }
+    )
 
     # Переименовываю целевую переменную для удобства дальнейшей работы
     df = df.rename(columns={TARGET_COLUMN: "default"})
 
     return df
+
 
 def create_features(df: pd.DataFrame) -> pd.DataFrame:
     """Создаю дополнительные признаки на основе истории клиента."""
@@ -69,9 +78,7 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     df["MAX_DELAY"] = df[PAY_STATUS_COLUMNS].max(axis=1)
 
     # Рассчитываю отношение среднего счёта к кредитному лимиту
-    df["CREDIT_UTILIZATION"] = (
-        df["AVG_BILL_AMT"] / df["LIMIT_BAL"]
-    )
+    df["CREDIT_UTILIZATION"] = df["AVG_BILL_AMT"] / df["LIMIT_BAL"]
 
     # Выполняю биннинг возраста
     df["AGE_GROUP"] = pd.cut(
@@ -82,6 +89,7 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     return df
+
 
 def save_data(
     df: pd.DataFrame,
@@ -94,6 +102,7 @@ def save_data(
 
     print(f"Обработанные данные сохранены: {path}")
 
+
 if __name__ == "__main__":
     df = load_data()
     df = clean_data(df)
@@ -101,6 +110,5 @@ if __name__ == "__main__":
     save_data(df)
 
     print(
-        f"Подготовка данных завершена: "
-        f"{df.shape[0]} строк, {df.shape[1]} столбцов"
+        f"Подготовка данных завершена: " f"{df.shape[0]} строк, {df.shape[1]} столбцов"
     )

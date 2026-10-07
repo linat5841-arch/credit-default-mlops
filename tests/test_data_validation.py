@@ -1,18 +1,15 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
+from src.validate_data import validate_numeric_ranges
 
 # Определяю корневую директорию проекта
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Задаю путь к исходным данным
-RAW_DATA_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "raw"
-    / "UCI_Credit_Card.csv"
-)
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "UCI_Credit_Card.csv"
 
 
 def test_anomalous_age_is_detected(tmp_path: Path) -> None:
@@ -34,10 +31,3 @@ def test_anomalous_age_is_detected(tmp_path: Path) -> None:
     # Проверяю, что Great Expectations обнаруживает аномалию
     with pytest.raises(ValueError):
         validate_numeric_ranges(test_file)
-
-
-import pytest
-
-from src.validate_data import validate_numeric_ranges
-
-   

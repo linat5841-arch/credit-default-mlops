@@ -2,17 +2,11 @@ from pathlib import Path
 
 import great_expectations as gx
 
-
 # Определяю корневую директорию проекта
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Задаю путь к исходным данным
-RAW_DATA_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "raw"
-    / "UCI_Credit_Card.csv"
-)
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "UCI_Credit_Card.csv"
 
 # Задаю ожидаемую структуру исходного датасета
 EXPECTED_COLUMNS = [
@@ -42,6 +36,7 @@ EXPECTED_COLUMNS = [
     "PAY_AMT6",
     "default.payment.next.month",
 ]
+
 
 def validate_data_types(path: Path = RAW_DATA_PATH) -> None:
     """Проверяю типы данных основных столбцов исходного датасета."""
@@ -173,9 +168,7 @@ def validate_missing_values(path: Path = RAW_DATA_PATH) -> None:
     batch = context.data_sources.pandas_default.read_csv(path)
 
     for column in EXPECTED_COLUMNS:
-        expectation = gx.expectations.ExpectColumnValuesToNotBeNull(
-            column=column
-        )
+        expectation = gx.expectations.ExpectColumnValuesToNotBeNull(column=column)
 
         result = batch.validate(expectation)
 
@@ -273,16 +266,5 @@ def validate_data(path: Path = RAW_DATA_PATH) -> None:
     print("Все проверки данных успешно пройдены.")
 
 
-
-
 if __name__ == "__main__":
     validate_data()
-
-
-
-
-
-
-
-    
-    
