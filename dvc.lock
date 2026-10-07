@@ -1,0 +1,18 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/prepare.py
+    deps:
+    - path: data/raw/UCI_Credit_Card.csv
+      hash: md5
+      md5: 940b416bb13a9b24bb5c9e1589284005
+      size: 2862995
+    - path: src/prepare.py
+      hash: md5
+      md5: 034c3541297c62bc17d8f9cd69d05357
+      size: 4243
+    outs:
+    - path: data/processed/credit_default_processed.csv
+      hash: md5
+      md5: ff1eb42d1b6a3d99a2d63959cd58a797
+      size: 5193752

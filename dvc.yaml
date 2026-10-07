@@ -1,0 +1,8 @@
+stages:
+  prepare:
+    cmd: python src/prepare.py
+    deps:
+    - data/raw/UCI_Credit_Card.csv
+    - src/prepare.py
+    outs:
+    - data/processed/credit_default_processed.csv
