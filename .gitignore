@@ -19,8 +19,10 @@ env/
 *.env
 
 # Data
-data/raw/*
-data/processed/*
+
+# Data files are versioned with DVC
+data/raw/*.csv
+data/processed/*.csv
 
 # Сохраняю структуру директорий data
 !data/raw/.gitkeep
