@@ -9,8 +9,8 @@ stages:
       size: 2862995
     - path: src/prepare.py
       hash: md5
-      md5: 825aeb8318f514a184327a26f016921a
-      size: 4292
+      md5: 514fbc1e9f9985a757dc33899b7dbea9
+      size: 4311
     outs:
     - path: data/processed/credit_default_processed.csv
       hash: md5
