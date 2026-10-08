@@ -44,4 +44,6 @@ mlflow.db
 *.temp
 
 # Windows
-Thumbs.db
+Thumbs.db.venv-dvc/ 
+client_secret_*.json
+.venv-dvc/
