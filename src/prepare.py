@@ -37,7 +37,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # Удаляю идентификатор клиента, так как он не является предиктором
-    df = df.drop(columns=["ID"])
+
+    df = df.drop(columns=["ID"], errors="ignore")
 
     # Объединяю неопределённые и редкие категории образования в категорию Other = 4
     df["EDUCATION"] = df["EDUCATION"].replace(
