@@ -1,9 +1,14 @@
+"""Отрицательные тесты валидации Great Expectations."""
+
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from src.validate_data import RAW_DATA_PATH, validate_data
+from src.validate_data import validate_data
+
+# Тестовый датасет, включённый в Git-репозиторий
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "valid_credit_data.csv"
 
 
 @pytest.mark.parametrize(
@@ -22,14 +27,24 @@ def test_invalid_data_is_rejected(
     column: str,
     invalid_value,
 ) -> None:
-    """Great Expectations must reject anomalous data."""
+    """Проверяет отклонение данных с аномальными значениями."""
 
-    df = pd.read_csv(RAW_DATA_PATH)
+    # Загружаем корректный тестовый датасет
+    df = pd.read_csv(FIXTURE_PATH)
 
-    df.loc[0, column] = invalid_value
+    # Создаём копию, чтобы не изменять исходную фикстуру
+    invalid_df = df.copy()
 
+    # Добавляем некорректное значение
+    invalid_df.loc[0, column] = invalid_value
+
+    # Сохраняем аномальные данные во временный CSV
     invalid_file = tmp_path / "invalid_data.csv"
-    df.to_csv(invalid_file, index=False)
+    invalid_df.to_csv(invalid_file, index=False)
 
-    with pytest.raises(ValueError, match="Валидация не пройдена"):
+    # Great Expectations должен отклонить аномальные данные
+    with pytest.raises(
+        ValueError,
+        match="Валидация не пройдена",
+    ):
         validate_data(invalid_file)
