@@ -1,3 +1,5 @@
+"""Обучение, подбор гиперпараметров и оценка PD-модели."""
+
 from pathlib import Path
 
 import joblib
@@ -5,6 +7,7 @@ import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
@@ -16,7 +19,11 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import (
+    GridSearchCV,
+    StratifiedKFold,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -46,9 +53,11 @@ MLFLOW_EXPERIMENT_NAME = "credit_default_pd_model"
 # Задаю имя целевой переменной
 TARGET_COLUMN = "default"
 
-# Задаю параметры воспроизводимости
-TEST_SIZE = 0.2
+# Фиксирую генератор случайных чисел
 RANDOM_STATE = 42
+
+# Определяю долю тестовой выборки
+TEST_SIZE = 0.2
 
 # Определяю категориальные признаки
 CATEGORICAL_FEATURES = [
@@ -184,7 +193,7 @@ def tune_model(
     X_train: pd.DataFrame,
     y_train: pd.Series,
 ) -> GridSearchCV:
-    """Подбираю гиперпараметры модели на обучающей выборке."""
+    """Подбираю гиперпараметры только на обучающей выборке."""
 
     # Задаю сетку гиперпараметров
     param_grid = {
@@ -200,12 +209,19 @@ def tune_model(
         ],
     }
 
+    # Создаю явную стратифицированную кросс-валидацию
+    cv = StratifiedKFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=RANDOM_STATE,
+    )
+
     # Создаю поиск по сетке
     grid_search = GridSearchCV(
         estimator=pipeline,
         param_grid=param_grid,
         scoring="roc_auc",
-        cv=5,
+        cv=cv,
         n_jobs=-1,
         refit=True,
     )
@@ -228,7 +244,7 @@ def evaluate_model(
     X_test: pd.DataFrame,
     y_test: pd.Series,
 ) -> dict:
-    """Оцениваю лучшую модель на тестовой выборке."""
+    """Оцениваю выбранную модель на тестовой выборке."""
 
     # Получаю прогноз класса
     y_pred = model.predict(X_test)
@@ -263,7 +279,7 @@ def evaluate_model(
         ),
     }
 
-    print("\nМетрики лучшей модели на тестовой выборке:")
+    print("\nМетрики выбранной модели на тестовой выборке:")
     print(f"Accuracy:  {metrics['accuracy']:.4f}")
     print(f"Precision: {metrics['precision']:.4f}")
     print(f"Recall:    {metrics['recall']:.4f}")
@@ -365,52 +381,76 @@ def log_mlflow_run(
     """Логирую параметры, метрики и артефакты в MLflow."""
 
     # Начинаю MLflow run
-    with mlflow.start_run(run_name="logistic_regression_tuned"):
-        # Логирую параметры эксперимента
+    with mlflow.start_run(
+        run_name="logistic_regression_tuned",
+    ):
+        # Логирую тип модели
         mlflow.log_param(
             "model_type",
             "LogisticRegression",
         )
+
+        # Логирую коэффициент регуляризации
         mlflow.log_param(
             "C",
             grid_search.best_params_["model__C"],
         )
+
+        # Логирую способ учёта дисбаланса классов
         mlflow.log_param(
             "class_weight",
             str(grid_search.best_params_["model__class_weight"]),
         )
+
+        # Логирую количество фолдов
         mlflow.log_param(
             "cv_folds",
             5,
         )
+
+        # Логирую метод кросс-валидации
+        mlflow.log_param(
+            "cv_strategy",
+            "StratifiedKFold",
+        )
+
+        # Логирую перемешивание фолдов
+        mlflow.log_param(
+            "cv_shuffle",
+            True,
+        )
+
+        # Логирую долю тестовой выборки
         mlflow.log_param(
             "test_size",
             TEST_SIZE,
         )
+
+        # Логирую random state
         mlflow.log_param(
             "random_state",
             RANDOM_STATE,
         )
 
-        # Логирую качество на кросс-валидации
+        # Логирую средний CV ROC-AUC
         mlflow.log_metric(
             "cv_roc_auc",
             grid_search.best_score_,
         )
 
-        # Логирую метрики на тестовой выборке
+        # Логирую финальные тестовые метрики
         mlflow.log_metrics(metrics)
 
-        # Логирую ROC-кривую как артефакт
+        # Сохраняю ROC-кривую как артефакт
         mlflow.log_artifact(
             str(roc_curve_path),
             artifact_path="figures",
         )
 
-        # Создаю пример входных данных для сигнатуры
+        # Создаю пример входных данных
         input_example = X_train.head(5)
 
-        # Логирую весь sklearn Pipeline в MLflow
+        # Логирую весь обученный Pipeline
         mlflow.sklearn.log_model(
             sk_model=model,
             name="model",
@@ -445,10 +485,10 @@ if __name__ == "__main__":
         y_train,
     )
 
-    # Получаю лучшую модель
+    # Получаю лучшую модель по CV ROC-AUC
     best_model = grid_search.best_estimator_
 
-    # Оцениваю лучшую модель на test
+    # Однократно оцениваю выбранную модель на test
     metrics = evaluate_model(
         best_model,
         X_test,
@@ -462,7 +502,7 @@ if __name__ == "__main__":
         y_test,
     )
 
-    # Сохраняю лучшую обученную модель
+    # Сохраняю обученный Pipeline
     save_model(
         best_model,
     )
