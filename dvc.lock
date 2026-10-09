@@ -25,8 +25,8 @@ stages:
       size: 5193752
     - path: src/train.py
       hash: md5
-      md5: d982383be9f6ad37f48bc9393e68eb0d
-      size: 13207
+      md5: 1327b106612030142b381d70bcbe8002
+      size: 14270
     outs:
     - path: models/credit_default_model.joblib
       hash: md5
